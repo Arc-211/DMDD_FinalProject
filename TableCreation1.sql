@@ -91,3 +91,57 @@ CREATE TABLE Category (
 );
 ALTER TABLE Category
 ADD CONSTRAINT fk_officer FOREIGN KEY (Officer_ID) REFERENCES Officer(Officer_ID);
+
+-- Create Crime Table
+CREATE TABLE Crime (
+    C_ID NUMBER PRIMARY KEY,
+    Category_ID NUMBER,
+    Created_by NUMBER,
+    Created_at TIMESTAMP,
+    Updated_by VARCHAR2(20),
+    Updated_at TIMESTAMP,
+    Crime_desc VARCHAR2(500),
+    Date_reported DATE,
+    Officer_ID NUMBER
+);
+ALTER TABLE Crime
+ADD CONSTRAINT fk_category FOREIGN KEY (Category_ID) REFERENCES Category(Category_ID);
+
+ALTER TABLE Crime
+ADD CONSTRAINT fk_crime_created_by FOREIGN KEY (Created_by) REFERENCES Users(User_ID);
+
+ALTER TABLE Crime
+ADD CONSTRAINT fk_crime_officer FOREIGN KEY (Officer_ID) REFERENCES Officer(Officer_ID);
+
+
+-- Create Crime_Status Table
+CREATE TABLE Crime_Status (
+    Status_ID NUMBER PRIMARY KEY,
+    C_ID NUMBER,
+    Created_by NUMBER,
+    Updated_by VARCHAR2(20),
+    Crime_Status VARCHAR2(100),
+    Date_assigned DATE,
+    Date_closed DATE
+);
+ALTER TABLE Crime_status
+ADD CONSTRAINT fk_crime FOREIGN KEY (C_ID) REFERENCES Crime(C_ID);
+
+ALTER TABLE Crime_status
+add   CONSTRAINT fk_crime_status_created_by FOREIGN KEY (Created_by) REFERENCES Users(User_ID);
+
+-- Create Victim Table
+CREATE TABLE Victim (
+    V_ID NUMBER PRIMARY KEY,
+    Firstname VARCHAR2(100) NOT NULL,
+    Lastname VARCHAR2(100) NOT NULL,
+    Date_of_Birth DATE,
+    Email VARCHAR2(100) NOT NULL UNIQUE,
+    Mobile_No VARCHAR2(10) UNIQUE,
+    Created_by NUMBER,
+    Created_at TIMESTAMP,
+    Updated_by VARCHAR2(20),
+    Updated_at TIMESTAMP
+);
+alter table Victim
+ADD CONSTRAINT fk_victim_created_by FOREIGN KEY (Created_by) REFERENCES Users(User_ID);
