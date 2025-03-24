@@ -341,4 +341,47 @@ VALUES (4, 4, 4, NULL, 'Closed', TO_DATE('2023-03-10', 'YYYY-MM-DD'), TO_DATE('2
 INSERT INTO Crime_Status (Status_ID, C_ID, Created_by, Updated_by, Crime_Status, Date_assigned, Date_closed)
 VALUES (5, 5, 5, NULL, 'Investigating', TO_DATE('2023-03-15', 'YYYY-MM-DD'), NULL);
 
+-- Insert sample data into Victim table
+INSERT INTO Victim (V_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No, Created_by, Created_at, Updated_by, Updated_at)
+VALUES (1, 'Anna', 'Taylor', TO_DATE('1985-03-22', 'YYYY-MM-DD'), 'anna.taylor@example.com', '5555555555', 1, CURRENT_TIMESTAMP, NULL, NULL);
+INSERT INTO Victim (V_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No, Created_by, Created_at, Updated_by, Updated_at)
+VALUES (2, 'John', 'Doe', TO_DATE('1992-07-25', 'YYYY-MM-DD'), 'john.doe@example.com', '5556666666', 2, CURRENT_TIMESTAMP, NULL, NULL);
+INSERT INTO Victim (V_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No, Created_by, Created_at, Updated_by, Updated_at)
+VALUES (3, 'Sophia', 'Johnson', TO_DATE('1987-10-10', 'YYYY-MM-DD'), 'sophia.johnson@example.com', '5557777777', 3, CURRENT_TIMESTAMP, NULL, NULL);
+INSERT INTO Victim (V_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No, Created_by, Created_at, Updated_by, Updated_at)
+VALUES (4, 'Liam', 'Martinez', TO_DATE('1993-12-15', 'YYYY-MM-DD'), 'liam.martinez@example.com', '5558888888', 4, CURRENT_TIMESTAMP, NULL, NULL);
+INSERT INTO Victim (V_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No, Created_by, Created_at, Updated_by, Updated_at)
+VALUES (5, 'Isabella', 'Clark', TO_DATE('1990-04-20', 'YYYY-MM-DD'), 'isabella.clark@example.com', '5559999999', 5, CURRENT_TIMESTAMP, NULL, NULL);
+
+-- Insert sample data into Victim_Crime table
+INSERT INTO Victim_Crime (V_ID, C_ID) VALUES (1, 1);
+INSERT INTO Victim_Crime (V_ID, C_ID) VALUES (2, 2);
+INSERT INTO Victim_Crime (V_ID, C_ID) VALUES (3, 3);
+INSERT INTO Victim_Crime (V_ID, C_ID) VALUES (4, 4);
+INSERT INTO Victim_Crime (V_ID, C_ID) VALUES (5, 5);
+
+-- Insert sample data into Crime_Criminal table
+INSERT INTO Crime_Criminal (C_ID, CR_ID) VALUES (1, 1);
+INSERT INTO Crime_Criminal (C_ID, CR_ID) VALUES (2, 2);
+INSERT INTO Crime_Criminal (C_ID, CR_ID) VALUES (3, 3);
+INSERT INTO Crime_Criminal (C_ID, CR_ID) VALUES (4, 4);
+INSERT INTO Crime_Criminal (C_ID, CR_ID) VALUES (5, 5);
+
+-- Insert sample data into Criminal table
+INSERT INTO Criminal (CR_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No)
+VALUES (1, 'Michael', 'Smith', TO_DATE('1980-01-01', 'YYYY-MM-DD'), 'michael.smith@example.com', '5559876543');
+INSERT INTO Criminal (CR_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No)
+VALUES (2, 'Sarah', 'Johnson', TO_DATE('1990-05-15', 'YYYY-MM-DD'), 'sarah.johnson@example.com', '5556543210');
+INSERT INTO Criminal (CR_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No)
+VALUES (3, 'David', 'Williams', TO_DATE('1978-12-10', 'YYYY-MM-DD'), 'david.williams@example.com', '5557654321');
+INSERT INTO Criminal (CR_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No)
+VALUES (4, 'Emily', 'Brown', TO_DATE('1985-04-20', 'YYYY-MM-DD'), 'emily.brown@example.com', '5558765432');
+INSERT INTO Criminal (CR_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No)
+VALUES (5, 'John', 'Miller', TO_DATE('1992-06-30', 'YYYY-MM-DD'), 'john.miller@example.com', '5554321098');
+
+
+-- Commit the transaction
+COMMIT;
+
+SELECT 'Crime Rate Management System (CRMS) setup completed successfully.' AS STATUS FROM DUAL;
 
