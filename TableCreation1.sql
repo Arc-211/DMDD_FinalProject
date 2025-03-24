@@ -199,3 +199,25 @@ GROUP BY
     cat.Category_ID, cat.Category_name
 ORDER BY 
     Total_Crimes DESC;
+
+-- View 2: Criminal Activity Report
+CREATE OR REPLACE VIEW Criminal_Activity_Report AS
+SELECT 
+    cr.CR_ID,
+    cr.Firstname || ' ' || cr.Lastname AS Criminal_Name,
+    COUNT(cc.C_ID) AS Crime_Count,
+    MIN(c.Date_reported) AS First_Crime_Date,
+    MAX(c.Date_reported) AS Last_Crime_Date,
+    LISTAGG(DISTINCT cat.Category_name, ', ') WITHIN GROUP (ORDER BY cat.Category_name) AS Crime_Categories
+FROM 
+    Criminal cr
+JOIN 
+    Crime_Criminal cc ON cr.CR_ID = cc.CR_ID
+JOIN 
+    Crime c ON cc.C_ID = c.C_ID
+JOIN 
+    Category cat ON c.Category_ID = cat.Category_ID
+GROUP BY 
+    cr.CR_ID, cr.Firstname, cr.Lastname
+ORDER BY 
+    Crime_Count DESC;    
