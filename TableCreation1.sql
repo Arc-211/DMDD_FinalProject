@@ -284,3 +284,61 @@ INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality
 VALUES (9, 'David', 'Lee', TO_DATE('1991-06-15', 'YYYY-MM-DD'), 'Canada', 'david.lee@police.com', 4, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5559012345');
 INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
 VALUES (10, 'Shreya', 'Kini', TO_DATE('1994-08-10', 'YYYY-MM-DD'), 'USA', 'shreya.kini@police.com', 6, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5550123456');
+
+-- Insert sample data into Category table
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (1, 'Theft', 1);
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (2, 'Assault', 2);
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (3, 'Fraud', 3);
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (4, 'Vandalism', 4);
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (5, 'Murder', 5);
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (6, 'Robbery', 6);
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (7, 'Burglary', 7);
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (8, 'Domestic Violence', 8);
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (9, 'Drug Offense', 9);
+INSERT INTO Category (Category_ID, Category_name, Officer_ID) 
+VALUES (10, 'Shoplifting', 10);
+
+-- Insert sample data into Crime table
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (1, 1, 1, CURRENT_TIMESTAMP, NULL, NULL, 'Stolen car from parking lot', TO_DATE('2023-03-01', 'YYYY-MM-DD'), 1);
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (2, 2, 2, CURRENT_TIMESTAMP, NULL, NULL, 'Physical assault in park', TO_DATE('2023-03-05', 'YYYY-MM-DD'), 2);
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (3, 3, 3, CURRENT_TIMESTAMP, NULL, NULL, 'Fraudulent investment scheme', TO_DATE('2023-03-07', 'YYYY-MM-DD'), 3);
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (4, 4, 4, CURRENT_TIMESTAMP, NULL, NULL, 'Vandalism of public property', TO_DATE('2023-03-10', 'YYYY-MM-DD'), 4);
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (5, 5, 5, CURRENT_TIMESTAMP, NULL, NULL, 'Murder of business executive', TO_DATE('2023-03-15', 'YYYY-MM-DD'), 5);
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (6, 6, 6, CURRENT_TIMESTAMP, NULL, NULL, 'Robbery at local bank', TO_DATE('2023-03-20', 'YYYY-MM-DD'), 6);
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (7, 7, 7, CURRENT_TIMESTAMP, NULL, NULL, 'Burglary at residential home', TO_DATE('2023-03-25', 'YYYY-MM-DD'), 7);
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (8, 8, 8, CURRENT_TIMESTAMP, NULL, NULL, 'Domestic violence dispute', TO_DATE('2023-03-30', 'YYYY-MM-DD'), 8);
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (9, 9, 9, CURRENT_TIMESTAMP, NULL, NULL, 'Drug trafficking ring', TO_DATE('2023-04-01', 'YYYY-MM-DD'), 9);
+INSERT INTO Crime (C_ID, Category_ID, Created_by, Created_at, Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID) 
+VALUES (10, 10, 10, CURRENT_TIMESTAMP, NULL, NULL, 'Shoplifting incident at mall', TO_DATE('2023-04-05', 'YYYY-MM-DD'), 10);
+
+-- Insert sample data into Crime_Status table
+INSERT INTO Crime_Status (Status_ID, C_ID, Created_by, Updated_by, Crime_Status, Date_assigned, Date_closed)
+VALUES (1, 1, 1, NULL, 'Investigating', TO_DATE('2023-03-01', 'YYYY-MM-DD'), NULL);
+INSERT INTO Crime_Status (Status_ID, C_ID, Created_by, Updated_by, Crime_Status, Date_assigned, Date_closed)
+VALUES (2, 2, 2, NULL, 'Closed', TO_DATE('2023-03-05', 'YYYY-MM-DD'), TO_DATE('2023-03-07', 'YYYY-MM-DD'));
+INSERT INTO Crime_Status (Status_ID, C_ID, Created_by, Updated_by, Crime_Status, Date_assigned, Date_closed)
+VALUES (3, 3, 3, NULL, 'Investigating', TO_DATE('2023-03-07', 'YYYY-MM-DD'), NULL);
+INSERT INTO Crime_Status (Status_ID, C_ID, Created_by, Updated_by, Crime_Status, Date_assigned, Date_closed)
+VALUES (4, 4, 4, NULL, 'Closed', TO_DATE('2023-03-10', 'YYYY-MM-DD'), TO_DATE('2023-03-12', 'YYYY-MM-DD'));
+INSERT INTO Crime_Status (Status_ID, C_ID, Created_by, Updated_by, Crime_Status, Date_assigned, Date_closed)
+VALUES (5, 5, 5, NULL, 'Investigating', TO_DATE('2023-03-15', 'YYYY-MM-DD'), NULL);
+
+
