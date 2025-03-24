@@ -221,3 +221,66 @@ GROUP BY
     cr.CR_ID, cr.Firstname, cr.Lastname
 ORDER BY 
     Crime_Count DESC;    
+
+
+-- View 3: Monthly Crime Trends
+CREATE OR REPLACE VIEW Monthly_Crime_Trends AS
+SELECT 
+    TO_CHAR(c.Date_reported, 'YYYY-MM') AS Month,
+    cat.Category_name,
+    COUNT(c.C_ID) AS Crime_Count,
+    ROUND(AVG(NVL(cs.Date_closed, SYSDATE) - cs.Date_assigned), 2) AS Avg_Days_To_Resolve
+FROM 
+    Crime c
+JOIN 
+    Category cat ON c.Category_ID = cat.Category_ID
+LEFT JOIN 
+    Crime_status cs ON c.C_ID = cs.C_ID
+GROUP BY 
+    TO_CHAR(c.Date_reported, 'YYYY-MM'), cat.Category_name
+ORDER BY 
+    Month DESC, Crime_Count DESC;
+
+-- Insert sample data into Users table
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (1, 'admin', 'adminpass', 'Admin', 'User', 'Admin', 'admin@example.com', '5551234567');
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (2, 'officer1', 'officerpass', 'John', 'Doe', 'Officer', 'john.doe@example.com', '5552345678');
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (3, 'user1', 'userpass', 'Jane', 'Smith', 'User', 'jane.smith@example.com', '5553456789');
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (4, 'officer2', 'officerpass', 'Mark', 'Johnson', 'Officer', 'mark.johnson@example.com', '5554567890');
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (5, 'user2', 'userpass', 'Emily', 'Davis', 'User', 'emily.davis@example.com', '5555678901');
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (6, 'admin2', 'adminpass2', 'James', 'Brown', 'Admin', 'james.brown@example.com', '5556789012');
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (7, 'officer3', 'officerpass3', 'Sarah', 'Wilson', 'Officer', 'sarah.wilson@example.com', '5557890123');
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (8, 'user3', 'userpass3', 'David', 'Lee', 'User', 'david.lee@example.com', '5558901234');
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (9, 'officer4', 'officerpass4', 'Sophia', 'Martinez', 'Officer', 'sophia.martinez@example.com', '5559012345');
+INSERT INTO Users (User_ID, Username, Password, Firstname, Lastname, Role, Email, Mobile_No) 
+VALUES (10, 'user4', 'userpass4', 'Lucas', 'Taylor', 'User', 'lucas.taylor@example.com', '5550123456');
+
+-- Insert sample data into Officer table
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (1, 'John', 'Doe', TO_DATE('1985-01-15', 'YYYY-MM-DD'), 'USA', 'john.doe@police.com', 2, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5551234567');
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (2, 'Jane', 'Smith', TO_DATE('1990-03-22', 'YYYY-MM-DD'), 'Canada', 'jane.smith@police.com', 4, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5552345678');
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (3, 'Mark', 'Johnson', TO_DATE('1987-05-30', 'YYYY-MM-DD'), 'UK', 'mark.johnson@police.com', 6, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5553456789');
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (4, 'Sophia', 'Martinez', TO_DATE('1982-07-25', 'YYYY-MM-DD'), 'Australia', 'sophia.martinez@police.com', 3, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5554567890');
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (5, 'Tom', 'Davis', TO_DATE('1989-09-10', 'YYYY-MM-DD'), 'USA', 'tom.davis@police.com', 2, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5555678901');
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (6, 'Emily', 'Davis', TO_DATE('1992-11-17', 'YYYY-MM-DD'), 'Canada', 'emily.davis@police.com', 4, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5556789012');
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (7, 'Lucas', 'Taylor', TO_DATE('1983-12-20', 'YYYY-MM-DD'), 'USA', 'lucas.taylor@police.com', 6, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5557890123');
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (8, 'Sophia', 'Wilson', TO_DATE('1990-04-12', 'YYYY-MM-DD'), 'UK', 'sophia.wilson@police.com', 3, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5558901234');
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (9, 'David', 'Lee', TO_DATE('1991-06-15', 'YYYY-MM-DD'), 'Canada', 'david.lee@police.com', 4, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5559012345');
+INSERT INTO Officer (Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No) 
+VALUES (10, 'Shreya', 'Kini', TO_DATE('1994-08-10', 'YYYY-MM-DD'), 'USA', 'shreya.kini@police.com', 6, CURRENT_TIMESTAMP, 'Admin', CURRENT_TIMESTAMP, '5550123456');
