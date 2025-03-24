@@ -175,3 +175,27 @@ CREATE TABLE Criminal (
     Email VARCHAR2(100) NOT NULL UNIQUE,
     Mobile_No VARCHAR2(10) UNIQUE
 );
+
+
+-- Create Views
+
+-- View 1: Crime Category Statistics
+CREATE OR REPLACE VIEW Crime_Category_Statistics AS
+SELECT 
+    cat.Category_ID,
+    cat.Category_name,
+    COUNT(c.C_ID) AS Total_Crimes,
+    COUNT(CASE WHEN cs.Date_closed IS NULL THEN 1 END) AS Open_Cases,
+    COUNT(CASE WHEN cs.Date_closed IS NOT NULL THEN 1 END) AS Closed_Cases,
+    ROUND(COUNT(CASE WHEN cs.Date_closed IS NOT NULL THEN 1 END) / 
+          NULLIF(COUNT(c.C_ID), 0) * 100, 2) AS Closure_Rate
+FROM 
+    Category cat
+LEFT JOIN 
+    Crime c ON cat.Category_ID = c.Category_ID
+LEFT JOIN 
+    Crime_status cs ON c.C_ID = cs.C_ID
+GROUP BY 
+    cat.Category_ID, cat.Category_name
+ORDER BY 
+    Total_Crimes DESC;
