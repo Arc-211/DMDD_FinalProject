@@ -145,3 +145,33 @@ CREATE TABLE Victim (
 );
 alter table Victim
 ADD CONSTRAINT fk_victim_created_by FOREIGN KEY (Created_by) REFERENCES Users(User_ID);
+
+-- Create Victim_Crime Table (Junction Table between Victim and Crime)
+CREATE TABLE Victim_Crime (
+    V_ID NUMBER,
+    C_ID NUMBER,
+    PRIMARY KEY (V_ID, C_ID)
+);
+ALTER TABLE Victim_Crime
+ADD CONSTRAINT fk_victim FOREIGN KEY (V_ID) REFERENCES Victim(V_ID);
+ALTER TABLE Victim_Crime
+ADD CONSTRAINT fk_victim_Crime_crime FOREIGN KEY (C_ID) REFERENCES Crime(C_ID);
+    
+-- Create Crime_Criminal Table (Junction Table between Crime and Criminal)
+CREATE TABLE Crime_Criminal (
+    C_ID NUMBER,
+    CR_ID NUMBER,
+    PRIMARY KEY (C_ID, CR_ID)
+);
+ALTER TABLE Crime_Criminal
+ADD CONSTRAINT fk_Crime_criminal_crime FOREIGN KEY (C_ID) REFERENCES Crime(C_ID);
+
+-- Create Criminal Table
+CREATE TABLE Criminal (
+    CR_ID NUMBER PRIMARY KEY,
+    Firstname VARCHAR2(100) NOT NULL,
+    Lastname VARCHAR2(100) NOT NULL,
+    Date_of_Birth DATE,
+    Email VARCHAR2(100) NOT NULL UNIQUE,
+    Mobile_No VARCHAR2(10) UNIQUE
+);
