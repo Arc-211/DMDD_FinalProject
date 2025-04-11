@@ -310,3 +310,232 @@ CREATE OR REPLACE PACKAGE BODY user_mgmt_pkg AS
 END user_mgmt_pkg;
 /
 
+-- 2. Crime Management Package
+CREATE OR REPLACE PACKAGE crime_mgmt_pkg AS
+    -- Add a new crime category
+    PROCEDURE add_category(
+        p_category_name IN VARCHAR2,
+        p_officer_id IN NUMBER,
+        p_category_id OUT NUMBER
+    );
+    
+    -- Report a new crime
+    PROCEDURE report_crime(
+        p_category_id IN NUMBER,
+        p_created_by IN NUMBER,
+        p_crime_desc IN VARCHAR2,
+        p_date_reported IN DATE,
+        p_officer_id IN NUMBER,
+        p_crime_id OUT NUMBER
+    );
+    
+    -- Link a victim to a crime
+    PROCEDURE link_victim_to_crime(
+        p_victim_id IN NUMBER,
+        p_crime_id IN NUMBER
+    );
+    
+    -- Link a criminal to a crime
+    PROCEDURE link_criminal_to_crime(
+        p_criminal_id IN NUMBER,
+        p_crime_id IN NUMBER
+    );
+    
+    -- Get crimes by category
+    FUNCTION get_crimes_by_category(
+        p_category_id IN NUMBER
+    ) RETURN SYS_REFCURSOR;
+    
+    -- Get crimes by officer
+    FUNCTION get_crimes_by_officer(
+        p_officer_id IN NUMBER
+    ) RETURN SYS_REFCURSOR;
+END crime_mgmt_pkg;
+/
+
+CREATE OR REPLACE PACKAGE BODY crime_mgmt_pkg AS
+    -- Add a new crime category
+    PROCEDURE add_category(
+        p_category_name IN VARCHAR2,
+        p_officer_id IN NUMBER,
+        p_category_id OUT NUMBER
+    ) IS
+    BEGIN
+        -- Generate a new category ID using the sequence
+        SELECT category_id_seq.NEXTVAL INTO p_category_id FROM DUAL;
+        
+        -- Insert the new category
+        INSERT INTO Category (
+            Category_ID, Category_name, Officer_ID
+        ) VALUES (
+            p_category_id, p_category_name, p_officer_id
+        );
+        
+        COMMIT;
+        
+        DBMS_OUTPUT.PUT_LINE('Category created successfully with ID: ' || p_category_id);
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END add_category;
+    
+    -- Report a new crime
+    PROCEDURE report_crime(
+        p_category_id IN NUMBER,
+        p_created_by IN NUMBER,
+        p_crime_desc IN VARCHAR2,
+        p_date_reported IN DATE,
+        p_officer_id IN NUMBER,
+        p_crime_id OUT NUMBER
+    ) IS
+    BEGIN
+        -- Generate a new crime ID using the sequence
+        SELECT crime_id_seq.NEXTVAL INTO p_crime_id FROM DUAL;
+        
+        -- Insert the new crime
+        INSERT INTO Crime (
+            C_ID, Category_ID, Created_by, Created_at, 
+            Updated_by, Updated_at, Crime_desc, Date_reported, Officer_ID
+        ) VALUES (
+            p_crime_id, p_category_id, p_created_by, CURRENT_TIMESTAMP, 
+            NULL, NULL, p_crime_desc, p_date_reported, p_officer_id
+        );
+        
+        -- Create initial status for the crime
+        INSERT INTO Crime_Status (
+            Status_ID, C_ID, Created_by, Updated_by, Crime_Status, Date_assigned, Date_closed
+        ) VALUES (
+            status_id_seq.NEXTVAL, p_crime_id, p_created_by, NULL, 'New', p_date_reported, NULL
+        );
+        
+        COMMIT;
+        
+        DBMS_OUTPUT.PUT_LINE('Crime reported successfully with ID: ' || p_crime_id);
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END report_crime;
+    
+    -- Link a victim to a crime
+    PROCEDURE link_victim_to_crime(
+        p_victim_id IN NUMBER,
+        p_crime_id IN NUMBER
+    ) IS
+    BEGIN
+        -- Check if the link already exists
+        DECLARE
+            v_count NUMBER;
+        BEGIN
+            SELECT COUNT(*) INTO v_count 
+            FROM Victim_Crime 
+            WHERE V_ID = p_victim_id AND C_ID = p_crime_id;
+            
+            IF v_count = 0 THEN
+                -- Insert the new link
+                INSERT INTO Victim_Crime (
+                    V_ID, C_ID
+                ) VALUES (
+                    p_victim_id, p_crime_id
+                );
+                
+                COMMIT;
+                
+                DBMS_OUTPUT.PUT_LINE('Victim linked to crime successfully');
+            ELSE
+                DBMS_OUTPUT.PUT_LINE('Victim is already linked to this crime');
+            END IF;
+        END;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END link_victim_to_crime;
+    
+    -- Link a criminal to a crime
+    PROCEDURE link_criminal_to_crime(
+        p_criminal_id IN NUMBER,
+        p_crime_id IN NUMBER
+    ) IS
+    BEGIN
+        -- Check if the link already exists
+        DECLARE
+            v_count NUMBER;
+        BEGIN
+            SELECT COUNT(*) INTO v_count 
+            FROM Crime_Criminal 
+            WHERE CR_ID = p_criminal_id AND C_ID = p_crime_id;
+            
+            IF v_count = 0 THEN
+                -- Insert the new link
+                INSERT INTO Crime_Criminal (
+                    C_ID, CR_ID
+                ) VALUES (
+                    p_crime_id, p_criminal_id
+                );
+                
+                COMMIT;
+                
+                DBMS_OUTPUT.PUT_LINE('Criminal linked to crime successfully');
+            ELSE
+                DBMS_OUTPUT.PUT_LINE('Criminal is already linked to this crime');
+            END IF;
+        END;
+    EXCEPTION
+        WHEN OTHERS THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END link_criminal_to_crime;
+    
+    -- Get crimes by category
+    FUNCTION get_crimes_by_category(
+        p_category_id IN NUMBER
+    ) RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        OPEN v_cursor FOR
+            SELECT c.C_ID, c.Crime_desc, c.Date_reported, cs.Crime_Status, 
+                   o.Firstname || ' ' || o.Lastname AS Officer_Name,
+                   cs.Date_assigned, cs.Date_closed
+            FROM Crime c
+            JOIN Crime_Status cs ON c.C_ID = cs.C_ID
+            JOIN Officer o ON c.Officer_ID = o.Officer_ID
+            WHERE c.Category_ID = p_category_id
+            ORDER BY c.Date_reported DESC;
+            
+        RETURN v_cursor;
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END get_crimes_by_category;
+    
+    -- Get crimes by officer
+    FUNCTION get_crimes_by_officer(
+        p_officer_id IN NUMBER
+    ) RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        OPEN v_cursor FOR
+            SELECT c.C_ID, c.Crime_desc, c.Date_reported, 
+                   cs.Crime_Status, cs.Date_assigned, cs.Date_closed,
+                   cat.Category_name
+            FROM Crime c
+            JOIN Crime_Status cs ON c.C_ID = cs.C_ID
+            JOIN Category cat ON c.Category_ID = cat.Category_ID
+            WHERE c.Officer_ID = p_officer_id
+            ORDER BY cs.Date_assigned DESC;
+            
+        RETURN v_cursor;
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END get_crimes_by_officer;
+END crime_mgmt_pkg;
+/
