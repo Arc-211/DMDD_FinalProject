@@ -539,3 +539,434 @@ CREATE OR REPLACE PACKAGE BODY crime_mgmt_pkg AS
     END get_crimes_by_officer;
 END crime_mgmt_pkg;
 /
+
+-- 3. Officer Management Package
+CREATE OR REPLACE PACKAGE officer_mgmt_pkg AS
+    -- Add a new officer
+    PROCEDURE add_officer(
+        p_firstname IN VARCHAR2,
+        p_lastname IN VARCHAR2,
+        p_dob IN DATE,
+        p_nationality IN VARCHAR2,
+        p_email IN VARCHAR2,
+        p_created_by IN NUMBER,
+        p_mobile_no IN VARCHAR2,
+        p_officer_id OUT NUMBER
+    );
+    
+    -- Update officer information
+    PROCEDURE update_officer(
+        p_officer_id IN NUMBER,
+        p_firstname IN VARCHAR2,
+        p_lastname IN VARCHAR2,
+        p_dob IN DATE,
+        p_nationality IN VARCHAR2,
+        p_email IN VARCHAR2,
+        p_updated_by IN VARCHAR2,
+        p_mobile_no IN VARCHAR2
+    );
+    
+    -- Get officer assignments
+    FUNCTION get_officer_assignments(
+        p_officer_id IN NUMBER
+    ) RETURN SYS_REFCURSOR;
+    
+    -- Get officer details
+    FUNCTION get_officer_details(
+        p_officer_id IN NUMBER
+    ) RETURN SYS_REFCURSOR;
+END officer_mgmt_pkg;
+/
+
+CREATE OR REPLACE PACKAGE BODY officer_mgmt_pkg AS
+    -- Add a new officer
+    PROCEDURE add_officer(
+        p_firstname IN VARCHAR2,
+        p_lastname IN VARCHAR2,
+        p_dob IN DATE,
+        p_nationality IN VARCHAR2,
+        p_email IN VARCHAR2,
+        p_created_by IN NUMBER,
+        p_mobile_no IN VARCHAR2,
+        p_officer_id OUT NUMBER
+    ) IS
+    BEGIN
+        -- Generate a new officer ID using the sequence
+        SELECT officer_id_seq.NEXTVAL INTO p_officer_id FROM DUAL;
+        
+        -- Insert the new officer
+        INSERT INTO Officer (
+            Officer_ID, Firstname, Lastname, Date_of_Birth, Nationality, 
+            Email, Created_by, Created_at, Updated_by, Updated_at, Mobile_No
+        ) VALUES (
+            p_officer_id, p_firstname, p_lastname, p_dob, p_nationality, 
+            p_email, p_created_by, CURRENT_TIMESTAMP, NULL, NULL, p_mobile_no
+        );
+        
+        COMMIT;
+        
+        DBMS_OUTPUT.PUT_LINE('Officer added successfully with ID: ' || p_officer_id);
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('Error: Email or Mobile_No already exists');
+            RAISE_APPLICATION_ERROR(-20003, 'Email or Mobile_No already exists');
+        WHEN OTHERS THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END add_officer;
+    
+    -- Update officer information
+    PROCEDURE update_officer(
+        p_officer_id IN NUMBER,
+        p_firstname IN VARCHAR2,
+        p_lastname IN VARCHAR2,
+        p_dob IN DATE,
+        p_nationality IN VARCHAR2,
+        p_email IN VARCHAR2,
+        p_updated_by IN VARCHAR2,
+        p_mobile_no IN VARCHAR2
+    ) IS
+    BEGIN
+        UPDATE Officer
+        SET Firstname = p_firstname,
+            Lastname = p_lastname,
+            Date_of_Birth = p_dob,
+            Nationality = p_nationality,
+            Email = p_email,
+            Updated_by = p_updated_by,
+            Updated_at = CURRENT_TIMESTAMP,
+            Mobile_No = p_mobile_no
+        WHERE Officer_ID = p_officer_id;
+        
+        IF SQL%ROWCOUNT = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('Officer ID ' || p_officer_id || ' not found');
+            RAISE_APPLICATION_ERROR(-20004, 'Officer ID not found');
+        ELSE
+            COMMIT;
+            DBMS_OUTPUT.PUT_LINE('Officer updated successfully');
+        END IF;
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('Error: Email or Mobile_No already exists');
+            RAISE_APPLICATION_ERROR(-20003, 'Email or Mobile_No already exists');
+        WHEN OTHERS THEN
+            ROLLBACK;
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END update_officer;
+    
+    -- Get officer assignments
+    FUNCTION get_officer_assignments(
+        p_officer_id IN NUMBER
+    ) RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        OPEN v_cursor FOR
+            SELECT c.C_ID, c.Crime_desc, cs.Crime_Status, 
+                   cs.Date_assigned, cs.Date_closed,
+                   cat.Category_name
+            FROM Crime c
+            JOIN Crime_Status cs ON c.C_ID = cs.C_ID
+            JOIN Category cat ON c.Category_ID = cat.Category_ID
+            WHERE c.Officer_ID = p_officer_id
+            ORDER BY 
+                CASE WHEN cs.Date_closed IS NULL THEN 0 ELSE 1 END,
+                cs.Date_assigned DESC;
+            
+        RETURN v_cursor;
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END get_officer_assignments;
+    
+    -- Get officer details
+    FUNCTION get_officer_details(
+        p_officer_id IN NUMBER
+    ) RETURN SYS_REFCURSOR IS
+        v_cursor SYS_REFCURSOR;
+    BEGIN
+        OPEN v_cursor FOR
+            SELECT o.Officer_ID, o.Firstname, o.Lastname, o.Date_of_Birth, 
+                   o.Nationality, o.Email, o.Mobile_No,
+                   u.Firstname || ' ' || u.Lastname AS Created_By_Name,
+                   o.Created_at, o.Updated_by, o.Updated_at
+            FROM Officer o
+            JOIN Users u ON o.Created_by = u.User_ID
+            WHERE o.Officer_ID = p_officer_id;
+            
+        RETURN v_cursor;
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+            RAISE;
+    END get_officer_details;
+END officer_mgmt_pkg;
+/
+
+-- 4. Individual procedures and functions
+
+-- Register a new criminal
+CREATE OR REPLACE PROCEDURE register_criminal(
+    p_firstname IN VARCHAR2,
+    p_lastname IN VARCHAR2,
+    p_dob IN DATE,
+    p_email IN VARCHAR2,
+    p_mobile_no IN VARCHAR2,
+    p_criminal_id OUT NUMBER
+) IS
+BEGIN
+    -- Generate a new criminal ID using the sequence
+    SELECT criminal_id_seq.NEXTVAL INTO p_criminal_id FROM DUAL;
+    
+    -- Insert the new criminal
+    INSERT INTO Criminal (
+        CR_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No
+    ) VALUES (
+        p_criminal_id, p_firstname, p_lastname, p_dob, p_email, p_mobile_no
+    );
+    
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('Criminal registered successfully with ID: ' || p_criminal_id);
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: Email or Mobile_No already exists');
+        RAISE_APPLICATION_ERROR(-20005, 'Email or Mobile_No already exists');
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        RAISE;
+END register_criminal;
+/
+
+-- Register a new victim
+CREATE OR REPLACE PROCEDURE register_victim(
+    p_firstname IN VARCHAR2,
+    p_lastname IN VARCHAR2,
+    p_dob IN DATE,
+    p_email IN VARCHAR2,
+    p_mobile_no IN VARCHAR2,
+    p_created_by IN NUMBER,
+    p_victim_id OUT NUMBER
+) IS
+BEGIN
+    -- Generate a new victim ID using the sequence
+    SELECT victim_id_seq.NEXTVAL INTO p_victim_id FROM DUAL;
+    
+    -- Insert the new victim
+    INSERT INTO Victim (
+        V_ID, Firstname, Lastname, Date_of_Birth, Email, Mobile_No,
+        Created_by, Created_at, Updated_by, Updated_at
+    ) VALUES (
+        p_victim_id, p_firstname, p_lastname, p_dob, p_email, p_mobile_no,
+        p_created_by, CURRENT_TIMESTAMP, NULL, NULL
+    );
+    
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('Victim registered successfully with ID: ' || p_victim_id);
+EXCEPTION
+    WHEN DUP_VAL_ON_INDEX THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: Email or Mobile_No already exists');
+        RAISE_APPLICATION_ERROR(-20006, 'Email or Mobile_No already exists');
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        RAISE;
+END register_victim;
+/
+
+-- Assign a crime to an officer
+CREATE OR REPLACE PROCEDURE assign_crime_to_officer(
+    p_crime_id IN NUMBER,
+    p_officer_id IN NUMBER,
+    p_assigned_by IN NUMBER
+) IS
+BEGIN
+    -- Update the crime record
+    UPDATE Crime
+    SET Officer_ID = p_officer_id,
+        Updated_by = (SELECT Username FROM Users WHERE User_ID = p_assigned_by),
+        Updated_at = CURRENT_TIMESTAMP
+    WHERE C_ID = p_crime_id;
+    
+    -- Update the crime status
+    UPDATE Crime_Status
+    SET Crime_Status = 'Assigned',
+        Updated_by = (SELECT Username FROM Users WHERE User_ID = p_assigned_by),
+        Date_assigned = CURRENT_DATE
+    WHERE C_ID = p_crime_id;
+    
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('Crime ' || p_crime_id || ' assigned to Officer ' || p_officer_id);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: Crime ID or Officer ID not found');
+        RAISE_APPLICATION_ERROR(-20007, 'Crime ID or Officer ID not found');
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        RAISE;
+END assign_crime_to_officer;
+/
+
+-- Update crime status
+CREATE OR REPLACE PROCEDURE update_crime_status(
+    p_crime_id IN NUMBER,
+    p_status IN VARCHAR2,
+    p_updated_by IN NUMBER,
+    p_date_closed IN DATE DEFAULT NULL
+) IS
+    v_current_status VARCHAR2(100);
+BEGIN
+    -- Get current status
+    SELECT Crime_Status INTO v_current_status
+    FROM Crime_Status
+    WHERE C_ID = p_crime_id;
+    
+    -- Update the crime status
+    UPDATE Crime_Status
+    SET Crime_Status = p_status,
+        Updated_by = (SELECT Username FROM Users WHERE User_ID = p_updated_by),
+        Date_closed = CASE 
+                         WHEN p_status = 'Closed' THEN COALESCE(p_date_closed, CURRENT_DATE)
+                         ELSE p_date_closed
+                       END
+    WHERE C_ID = p_crime_id;
+    
+    COMMIT;
+    
+    DBMS_OUTPUT.PUT_LINE('Crime status updated from ' || v_current_status || ' to ' || p_status);
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: Crime ID not found');
+        RAISE_APPLICATION_ERROR(-20008, 'Crime ID not found');
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        RAISE;
+END update_crime_status;
+/
+
+-- Get officer caseload function
+CREATE OR REPLACE FUNCTION get_officer_caseload(
+    p_officer_id IN NUMBER
+) RETURN NUMBER IS
+    v_caseload NUMBER;
+BEGIN
+    SELECT COUNT(*)
+    INTO v_caseload
+    FROM Crime c
+    JOIN Crime_Status cs ON c.C_ID = cs.C_ID
+    WHERE c.Officer_ID = p_officer_id
+    AND cs.Date_closed IS NULL;
+    
+    RETURN v_caseload;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 0;
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        RETURN -1;
+END get_officer_caseload;
+/
+
+-- Get crime status function
+CREATE OR REPLACE FUNCTION get_crime_status(
+    p_crime_id IN NUMBER
+) RETURN VARCHAR2 IS
+    v_status VARCHAR2(100);
+BEGIN
+    SELECT Crime_Status
+    INTO v_status
+    FROM Crime_Status
+    WHERE C_ID = p_crime_id;
+    
+    RETURN v_status;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN 'Not Found';
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        RETURN 'Error';
+END get_crime_status;
+/
+
+-- Create triggers for audit trail
+CREATE OR REPLACE TRIGGER trg_crime_audit
+AFTER UPDATE ON Crime
+FOR EACH ROW
+BEGIN
+    -- Log the update in a dedicated audit log (if needed)
+    DBMS_OUTPUT.PUT_LINE('Crime ' || :OLD.C_ID || ' updated on ' || SYSTIMESTAMP);
+END;
+/
+
+CREATE OR REPLACE TRIGGER trg_crime_status_audit
+AFTER UPDATE ON Crime_Status
+FOR EACH ROW
+BEGIN
+    -- Log the status change
+    IF :OLD.Crime_Status <> :NEW.Crime_Status THEN
+        DBMS_OUTPUT.PUT_LINE('Crime ' || :OLD.C_ID || ' status changed from ' || 
+                            :OLD.Crime_Status || ' to ' || :NEW.Crime_Status || 
+                            ' on ' || SYSTIMESTAMP);
+    END IF;
+END;
+/
+
+-- Sample data for testing stored procedures
+
+-- Testing user management package
+DECLARE
+    v_user_id NUMBER;
+    v_success BOOLEAN;
+BEGIN
+    -- Add a new user
+    user_mgmt_pkg.add_user(
+        p_username => 'testuser',
+        p_password => 'testpass',
+        p_firstname => 'Test',
+        p_lastname => 'User',
+        p_role => 'Officer',
+        p_email => 'test.user@example.com',
+        p_mobile_no => '5551234567',
+        p_user_id => v_user_id
+    );
+    
+    -- Update user
+    user_mgmt_pkg.update_user(
+        p_user_id => v_user_id,
+        p_username => 'testuser',
+        p_firstname => 'Test',
+        p_lastname => 'User Updated',
+        p_role => 'Officer',
+        p_email => 'test.user@example.com',
+        p_mobile_no => '5551234567'
+    );
+    
+    -- Change password
+    user_mgmt_pkg.change_password(
+        p_user_id => v_user_id,
+        p_old_password => 'testpass',
+        p_new_password => 'newpass',
+        p_success => v_success
+    );
+    
+    -- Authenticate user
+    DBMS_OUTPUT.PUT_LINE('Authentication result: ' || 
+        user_mgmt_pkg.authenticate_user('testuser', 'newpass'));
+    
+    -- Clean up test data
+    user_mgmt_pkg.delete_user(v_user_id);
+END;
+/
