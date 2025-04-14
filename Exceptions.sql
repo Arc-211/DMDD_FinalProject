@@ -702,3 +702,369 @@ END;
 COMMIT; CRMS system
 
 SET SERVEROUTPUT ON;
+
+
+-- ===============================================================
+-- TEST CASE 1: Exception handling for duplicate user information
+-- ===============================================================
+DECLARE
+    v_user_id NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    DBMS_OUTPUT.PUT_LINE('TEST CASE 1: Exception handling for duplicate user info');
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    
+    -- First create a test user
+    BEGIN
+        user_mgmt_pkg.add_user(
+            p_username => 'exception_test1',
+            p_password => 'test123',
+            p_firstname => 'Exception',
+            p_lastname => 'Test',
+            p_role => 'Officer',
+            p_email => 'exception.test1@example.com',
+            p_mobile_no => '5551110001',
+            p_user_id => v_user_id
+        );
+        DBMS_OUTPUT.PUT_LINE('Successfully created first test user with ID: ' || v_user_id);
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Error creating first test user: ' || SQLERRM);
+    END;
+    
+    -- Try to create another user with the same username
+    BEGIN
+        DBMS_OUTPUT.PUT_LINE('Attempting to create user with duplicate username...');
+        user_mgmt_pkg.add_user(
+            p_username => 'exception_test1', -- Duplicate username
+            p_password => 'test456',
+            p_firstname => 'Another',
+            p_lastname => 'User',
+            p_role => 'Officer',
+            p_email => 'another.user@example.com',
+            p_mobile_no => '5551110002',
+            p_user_id => v_user_id
+        );
+        DBMS_OUTPUT.PUT_LINE('ERROR: Created user with duplicate username - exception handling failed!');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('EXPECTED EXCEPTION CAUGHT: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('Exception handling for duplicate username works correctly');
+    END;
+    
+    -- Try to create another user with the same email
+    BEGIN
+        DBMS_OUTPUT.PUT_LINE('Attempting to create user with duplicate email...');
+        user_mgmt_pkg.add_user(
+            p_username => 'exception_test2',
+            p_password => 'test456',
+            p_firstname => 'Another',
+            p_lastname => 'User',
+            p_role => 'Officer',
+            p_email => 'exception.test1@example.com', -- Duplicate email
+            p_mobile_no => '5551110003',
+            p_user_id => v_user_id
+        );
+        DBMS_OUTPUT.PUT_LINE('ERROR: Created user with duplicate email - exception handling failed!');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('EXPECTED EXCEPTION CAUGHT: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('Exception handling for duplicate email works correctly');
+    END;
+    
+    -- Try to create another user with the same mobile number
+    BEGIN
+        DBMS_OUTPUT.PUT_LINE('Attempting to create user with duplicate mobile number...');
+        user_mgmt_pkg.add_user(
+            p_username => 'exception_test3',
+            p_password => 'test456',
+            p_firstname => 'Another',
+            p_lastname => 'User',
+            p_role => 'Officer',
+            p_email => 'another.user3@example.com',
+            p_mobile_no => '5551110001', -- Duplicate mobile
+            p_user_id => v_user_id
+        );
+        DBMS_OUTPUT.PUT_LINE('ERROR: Created user with duplicate mobile - exception handling failed!');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('EXPECTED EXCEPTION CAUGHT: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('Exception handling for duplicate mobile works correctly');
+    END;
+END;
+/
+
+-- ===============================================================
+-- TEST CASE 2: Exception handling for invalid role assignment
+-- ===============================================================
+DECLARE
+    v_user_id NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    DBMS_OUTPUT.PUT_LINE('TEST CASE 2: Exception handling for invalid user role');
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    
+    -- Try to create a user with an invalid role
+    BEGIN
+        DBMS_OUTPUT.PUT_LINE('Attempting to create user with invalid role...');
+        user_mgmt_pkg.add_user(
+            p_username => 'invalid_role_test',
+            p_password => 'test123',
+            p_firstname => 'Invalid',
+            p_lastname => 'Role',
+            p_role => 'SuperAdmin', -- Invalid role
+            p_email => 'invalid.role@example.com',
+            p_mobile_no => '5551110099',
+            p_user_id => v_user_id
+        );
+        DBMS_OUTPUT.PUT_LINE('ERROR: Created user with invalid role - constraint check failed!');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('EXPECTED EXCEPTION CAUGHT: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('Constraint check for valid roles works correctly');
+    END;
+END;
+/
+
+-- ===============================================================
+-- TEST CASE 3: Exception handling for invalid IDs in procedures
+-- ===============================================================
+DECLARE
+    v_non_existent_id NUMBER := 9999; -- Assuming this ID doesn't exist
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    DBMS_OUTPUT.PUT_LINE('TEST CASE 3: Exception handling for invalid IDs');
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    
+    -- Try to update a non-existent user
+    BEGIN
+        DBMS_OUTPUT.PUT_LINE('Attempting to update non-existent user...');
+        user_mgmt_pkg.update_user(
+            p_user_id => v_non_existent_id,
+            p_username => 'ghost_user',
+            p_firstname => 'Ghost',
+            p_lastname => 'User',
+            p_role => 'User',
+            p_email => 'ghost.user@example.com',
+            p_mobile_no => '5551119999'
+        );
+        DBMS_OUTPUT.PUT_LINE('ERROR: Updated non-existent user - exception handling failed!');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('EXPECTED EXCEPTION CAUGHT: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('Exception handling for invalid user ID works correctly');
+    END;
+    
+    -- Try to link a victim to a non-existent crime
+    BEGIN
+        DBMS_OUTPUT.PUT_LINE('Attempting to link victim to non-existent crime...');
+        crime_mgmt_pkg.link_victim_to_crime(
+            p_victim_id => 1, -- Assuming this is a valid victim ID
+            p_crime_id => v_non_existent_id
+        );
+        DBMS_OUTPUT.PUT_LINE('ERROR: Linked victim to non-existent crime - exception handling failed!');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('EXPECTED EXCEPTION CAUGHT: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('Exception handling for invalid crime ID works correctly');
+    END;
+    
+    -- Try to update status of a non-existent crime
+    BEGIN
+        DBMS_OUTPUT.PUT_LINE('Attempting to update status of non-existent crime...');
+        update_crime_status(
+            p_crime_id => v_non_existent_id,
+            p_status => 'Closed',
+            p_updated_by => 1
+        );
+        DBMS_OUTPUT.PUT_LINE('ERROR: Updated non-existent crime - exception handling failed!');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('EXPECTED EXCEPTION CAUGHT: ' || SQLERRM);
+            DBMS_OUTPUT.PUT_LINE('Exception handling for invalid crime ID works correctly');
+    END;
+END;
+/
+
+-- ===============================================================
+-- TEST CASE 4: Authentication failure handling
+-- ===============================================================
+DECLARE
+    v_result NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    DBMS_OUTPUT.PUT_LINE('TEST CASE 4: Authentication failure handling');
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    
+    -- Test with invalid username
+    DBMS_OUTPUT.PUT_LINE('Testing authentication with invalid username...');
+    v_result := user_mgmt_pkg.authenticate_user('non_existent_user', 'password123');
+    
+    IF v_result = -1 THEN
+        DBMS_OUTPUT.PUT_LINE('CORRECT BEHAVIOR: Authentication correctly failed with invalid username');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('ERROR: Authentication did not fail as expected');
+    END IF;
+    
+    -- Create a test user for password testing
+    DECLARE
+        v_user_id NUMBER;
+    BEGIN
+        user_mgmt_pkg.add_user(
+            p_username => 'auth_test_user',
+            p_password => 'correct_password',
+            p_firstname => 'Auth',
+            p_lastname => 'Test',
+            p_role => 'User',
+            p_email => 'auth.test@example.com',
+            p_mobile_no => '5552223333',
+            p_user_id => v_user_id
+        );
+        DBMS_OUTPUT.PUT_LINE('Created test user for authentication testing');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Note: Test user may already exist');
+    END;
+    
+    -- Test with valid username but wrong password
+    DBMS_OUTPUT.PUT_LINE('Testing authentication with valid username but wrong password...');
+    v_result := user_mgmt_pkg.authenticate_user('auth_test_user', 'wrong_password');
+    
+    IF v_result = -1 THEN
+        DBMS_OUTPUT.PUT_LINE('CORRECT BEHAVIOR: Authentication correctly failed with wrong password');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('ERROR: Authentication did not fail as expected');
+    END IF;
+    
+    -- Test with valid username and password
+    DBMS_OUTPUT.PUT_LINE('Testing authentication with valid username and password...');
+    v_result := user_mgmt_pkg.authenticate_user('auth_test_user', 'correct_password');
+    
+    IF v_result > 0 THEN
+        DBMS_OUTPUT.PUT_LINE('CORRECT BEHAVIOR: Authentication successful with valid credentials');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('ERROR: Authentication failed with valid credentials');
+    END IF;
+END;
+/
+
+-- ===============================================================
+-- TEST CASE 5: Password change validation
+-- ===============================================================
+DECLARE
+    v_success BOOLEAN;
+    v_user_id NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    DBMS_OUTPUT.PUT_LINE('TEST CASE 5: Password change validation');
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    
+    -- Create a test user if not exists
+    BEGIN
+        user_mgmt_pkg.add_user(
+            p_username => 'pwd_test_user',
+            p_password => 'initial_password',
+            p_firstname => 'Password',
+            p_lastname => 'Test',
+            p_role => 'User',
+            p_email => 'pwd.test@example.com',
+            p_mobile_no => '5553334444',
+            p_user_id => v_user_id
+        );
+        DBMS_OUTPUT.PUT_LINE('Created test user for password testing');
+    EXCEPTION
+        WHEN OTHERS THEN
+            -- User may already exist, get the user ID
+            SELECT User_ID INTO v_user_id
+            FROM Users
+            WHERE Username = 'pwd_test_user';
+            DBMS_OUTPUT.PUT_LINE('Using existing test user for password testing');
+    END;
+    
+    -- Try to change password with incorrect old password
+    DBMS_OUTPUT.PUT_LINE('Attempting to change password with incorrect old password...');
+    user_mgmt_pkg.change_password(
+        p_user_id => v_user_id,
+        p_old_password => 'wrong_old_password',
+        p_new_password => 'new_password',
+        p_success => v_success
+    );
+    
+    IF NOT v_success THEN
+        DBMS_OUTPUT.PUT_LINE('CORRECT BEHAVIOR: Password change failed with incorrect old password');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('ERROR: Password changed with incorrect old password!');
+    END IF;
+    
+    -- Change password with correct old password
+    DBMS_OUTPUT.PUT_LINE('Changing password with correct old password...');
+    user_mgmt_pkg.change_password(
+        p_user_id => v_user_id,
+        p_old_password => 'initial_password',
+        p_new_password => 'new_password',
+        p_success => v_success
+    );
+    
+    IF v_success THEN
+        DBMS_OUTPUT.PUT_LINE('CORRECT BEHAVIOR: Password changed successfully with correct old password');
+        
+        -- Verify new password works for authentication
+        DECLARE
+            v_auth_result NUMBER;
+        BEGIN
+            v_auth_result := user_mgmt_pkg.authenticate_user('pwd_test_user', 'new_password');
+            
+            IF v_auth_result > 0 THEN
+                DBMS_OUTPUT.PUT_LINE('CORRECT BEHAVIOR: Authentication successful with new password');
+            ELSE
+                DBMS_OUTPUT.PUT_LINE('ERROR: Authentication failed with new password');
+            END IF;
+        END;
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('ERROR: Password change failed with correct old password');
+    END IF;
+END;
+/
+
+-- ===============================================================
+-- TEST CASE 6: Date validation in crime reporting
+-- ===============================================================
+DECLARE
+    v_crime_id NUMBER;
+    v_future_date DATE := SYSDATE + 30; -- 30 days in the future
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    DBMS_OUTPUT.PUT_LINE('TEST CASE 6: Date validation in crime reporting');
+    DBMS_OUTPUT.PUT_LINE('=======================================================');
+    
+    -- Attempt to report a crime with a future date
+    DBMS_OUTPUT.PUT_LINE('Attempting to report a crime with a future date...');
+    
+    BEGIN
+        crime_mgmt_pkg.report_crime(
+            p_category_id => 1, -- Assuming category ID 1 exists
+            p_created_by => 1, -- Assuming user ID 1 exists
+            p_crime_desc => 'Test crime with future date',
+            p_date_reported => v_future_date, -- Future date
+            p_officer_id => 1, -- Assuming officer ID 1 exists
+            p_crime_id => v_crime_id
+        );
+        
+        -- Check if the system allowed the future date
+        IF v_crime_id IS NOT NULL THEN
+            DBMS_OUTPUT.PUT_LINE('WARNING: System allowed reporting a crime with a future date.');
+            DBMS_OUTPUT.PUT_LINE('Consider adding date validation to prevent future dates.');
+        END IF;
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('EXCEPTION CAUGHT: ' || SQLERRM);
+            IF INSTR(UPPER(SQLERRM), 'DATE') > 0 THEN
+                DBMS_OUTPUT.PUT_LINE('CORRECT BEHAVIOR: System prevented reporting a crime with a future date');
+            ELSE
+                DBMS_OUTPUT.PUT_LINE('Exception occurred but may not be related to date validation');
+            END IF;
+    END;
+END;
+/
+
+COMMIT;
