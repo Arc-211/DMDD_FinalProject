@@ -209,3 +209,285 @@ FROM Crime_Status cs
 JOIN Crime c ON cs.C_ID = c.C_ID
 JOIN Category cat ON c.Category_ID = cat.Category_ID
 WHERE cat.Category_name = 'Cybercrime99';
+
+-- ===============================
+-- 5. VICTIM MANAGEMENT TESTING
+-- ===============================
+
+-- Register a victim
+DECLARE
+    v_victim_id NUMBER;
+    v_user_id NUMBER;
+BEGIN
+    -- Get the user ID first
+    SELECT User_ID INTO v_user_id
+    FROM Users 
+    WHERE Username = 'test_officer99';
+    
+    register_victim(
+        p_firstname => 'John',
+        p_lastname => 'Victim99',
+        p_dob => TO_DATE('1980-11-20', 'YYYY-MM-DD'),
+        p_email => 'john.victim99@example.com',
+        p_mobile_no => '5558889999',
+        p_created_by => v_user_id,
+        p_victim_id => v_victim_id
+    );
+    DBMS_OUTPUT.PUT_LINE('New victim registered with ID: ' || v_victim_id);
+END;
+/
+
+-- Verify victim creation
+SELECT V_ID, Firstname, Lastname, Email, Mobile_No
+FROM Victim
+WHERE Email = 'john.victim99@example.com';
+
+-- Link victim to crime
+DECLARE
+    v_crime_id NUMBER;
+    v_victim_id NUMBER;
+BEGIN
+    -- Get the cybercrime ID
+    SELECT c.C_ID INTO v_crime_id
+    FROM Crime c
+    JOIN Category cat ON c.Category_ID = cat.Category_ID
+    WHERE cat.Category_name = 'Cybercrime99'
+    AND ROWNUM = 1;
+    
+    -- Get the victim ID
+    SELECT V_ID INTO v_victim_id
+    FROM Victim
+    WHERE Email = 'john.victim99@example.com';
+    
+    crime_mgmt_pkg.link_victim_to_crime(
+        p_victim_id => v_victim_id,
+        p_crime_id => v_crime_id
+    );
+    DBMS_OUTPUT.PUT_LINE('Victim linked to crime ID: ' || v_crime_id);
+END;
+/
+
+-- Verify victim-crime relationship
+SELECT v.V_ID, v.Firstname || ' ' || v.Lastname AS Victim_Name, 
+       c.C_ID, c.Crime_desc, cat.Category_name
+FROM Victim v
+JOIN Victim_Crime vc ON v.V_ID = vc.V_ID
+JOIN Crime c ON vc.C_ID = c.C_ID
+JOIN Category cat ON c.Category_ID = cat.Category_ID
+WHERE v.Email = 'john.victim99@example.com';
+
+-- ===============================
+-- 6. CRIMINAL MANAGEMENT TESTING
+-- ===============================
+
+-- Register a criminal
+DECLARE
+    v_criminal_id NUMBER;
+BEGIN
+    register_criminal(
+        p_firstname => 'James',
+        p_lastname => 'Criminal99',
+        p_dob => TO_DATE('1992-06-15', 'YYYY-MM-DD'),
+        p_email => 'james.criminal99@example.com',
+        p_mobile_no => '5557779999',
+        p_criminal_id => v_criminal_id
+    );
+    DBMS_OUTPUT.PUT_LINE('New criminal registered with ID: ' || v_criminal_id);
+END;
+/
+
+-- Verify criminal creation
+SELECT CR_ID, Firstname, Lastname, Email, Mobile_No
+FROM Criminal
+WHERE Email = 'james.criminal99@example.com';
+
+-- Link criminal to crime
+DECLARE
+    v_crime_id NUMBER;
+    v_criminal_id NUMBER;
+BEGIN
+    -- Get the cybercrime ID
+    SELECT c.C_ID INTO v_crime_id
+    FROM Crime c
+    JOIN Category cat ON c.Category_ID = cat.Category_ID
+    WHERE cat.Category_name = 'Cybercrime99'
+    AND ROWNUM = 1;
+    
+    -- Get the criminal ID
+    SELECT CR_ID INTO v_criminal_id
+    FROM Criminal
+    WHERE Email = 'james.criminal99@example.com';
+    
+    crime_mgmt_pkg.link_criminal_to_crime(
+        p_criminal_id => v_criminal_id,
+        p_crime_id => v_crime_id
+    );
+    DBMS_OUTPUT.PUT_LINE('Criminal linked to crime ID: ' || v_crime_id);
+END;
+/
+
+-- Verify criminal-crime relationship
+SELECT cr.CR_ID, cr.Firstname || ' ' || cr.Lastname AS Criminal_Name, 
+       c.C_ID, c.Crime_desc, cat.Category_name
+FROM Criminal cr
+JOIN Crime_Criminal cc ON cr.CR_ID = cc.CR_ID
+JOIN Crime c ON cc.C_ID = c.C_ID
+JOIN Category cat ON c.Category_ID = cat.Category_ID
+WHERE cr.Email = 'james.criminal99@example.com';
+
+-- ===============================
+-- 7. CASE MANAGEMENT TESTING
+-- ===============================
+
+-- Update crime status
+DECLARE
+    v_crime_id NUMBER;
+    v_user_id NUMBER;
+BEGIN
+    -- Get the cybercrime ID
+    SELECT c.C_ID INTO v_crime_id
+    FROM Crime c
+    JOIN Category cat ON c.Category_ID = cat.Category_ID
+    WHERE cat.Category_name = 'Cybercrime99'
+    AND ROWNUM = 1;
+    
+    -- Get the user ID
+    SELECT User_ID INTO v_user_id
+    FROM Users 
+    WHERE Username = 'test_officer99';
+    
+    update_crime_status(
+        p_crime_id => v_crime_id,
+        p_status => 'Investigating',
+        p_updated_by => v_user_id
+    );
+    DBMS_OUTPUT.PUT_LINE('Crime status updated to Investigating');
+END;
+/
+
+-- Verify status update
+SELECT c.C_ID, c.Crime_desc, cs.Crime_Status, 
+       TO_CHAR(cs.Date_assigned, 'YYYY-MM-DD') AS Date_Assigned, 
+       TO_CHAR(cs.Date_closed, 'YYYY-MM-DD') AS Date_Closed
+FROM Crime c
+JOIN Crime_Status cs ON c.C_ID = cs.C_ID
+JOIN Category cat ON c.Category_ID = cat.Category_ID
+WHERE cat.Category_name = 'Cybercrime99';
+
+-- Reassign the case to another officer
+DECLARE
+    v_crime_id NUMBER;
+    v_officer_id NUMBER := 2; -- Assuming officer ID 2 exists
+    v_admin_id NUMBER := 1;   -- Assuming admin user ID is 1
+BEGIN
+    -- Get the cybercrime ID
+    SELECT c.C_ID INTO v_crime_id
+    FROM Crime c
+    JOIN Category cat ON c.Category_ID = cat.Category_ID
+    WHERE cat.Category_name = 'Cybercrime99'
+    AND ROWNUM = 1;
+    
+    assign_crime_to_officer(
+        p_crime_id => v_crime_id,
+        p_officer_id => v_officer_id,
+        p_assigned_by => v_admin_id
+    );
+    DBMS_OUTPUT.PUT_LINE('Crime reassigned to officer ID: ' || v_officer_id);
+END;
+/
+
+-- Verify reassignment
+SELECT c.C_ID, c.Crime_desc, o.Firstname || ' ' || o.Lastname AS Assigned_Officer,
+       cs.Crime_Status, TO_CHAR(cs.Date_assigned, 'YYYY-MM-DD') AS Date_Assigned
+FROM Crime c
+JOIN Officer o ON c.Officer_ID = o.Officer_ID
+JOIN Crime_Status cs ON c.C_ID = cs.C_ID
+JOIN Category cat ON c.Category_ID = cat.Category_ID
+WHERE cat.Category_name = 'Cybercrime99';
+
+-- Close the case
+DECLARE
+    v_crime_id NUMBER;
+    v_officer_id NUMBER := 2; -- Same officer who was assigned
+BEGIN
+    -- Get the cybercrime ID
+    SELECT c.C_ID INTO v_crime_id
+    FROM Crime c
+    JOIN Category cat ON c.Category_ID = cat.Category_ID
+    WHERE cat.Category_name = 'Cybercrime99'
+    AND ROWNUM = 1;
+    
+    update_crime_status(
+        p_crime_id => v_crime_id,
+        p_status => 'Closed',
+        p_updated_by => v_officer_id,
+        p_date_closed => SYSDATE
+    );
+    DBMS_OUTPUT.PUT_LINE('Crime closed successfully');
+END;
+/
+
+-- Verify case closure
+SELECT c.C_ID, c.Crime_desc, cs.Crime_Status, 
+       TO_CHAR(cs.Date_assigned, 'YYYY-MM-DD') AS Date_Assigned, 
+       TO_CHAR(cs.Date_closed, 'YYYY-MM-DD') AS Date_Closed,
+       TRUNC(cs.Date_closed - cs.Date_assigned) AS Days_To_Resolve
+FROM Crime c
+JOIN Crime_Status cs ON c.C_ID = cs.C_ID
+JOIN Category cat ON c.Category_ID = cat.Category_ID
+WHERE cat.Category_name = 'Cybercrime99';
+
+-- ===============================
+-- 8. ANALYTICAL REPORTS TESTING
+-- ===============================
+
+-- Officer Performance Statistics
+SELECT * FROM Officer_Performance_Statistics 
+WHERE ROWNUM <= 5;
+
+-- Crime Category Statistics
+SELECT * FROM Crime_Category_Statistics
+WHERE ROWNUM <= 5;
+
+-- Detailed Crime Report
+SELECT Crime_ID, Crime_Category, Description, Status, 
+       Assigned_Officer, Victim_Count, Criminal_Count
+FROM Detailed_Crime_Report 
+WHERE Crime_Category = 'Cybercrime99';
+
+-- High Priority Cases
+SELECT Crime_ID, Crime_Category, Description, Status, Days_Open, Priority
+FROM High_Priority_Cases
+WHERE ROWNUM <= 5;
+
+-- Criminal History
+SELECT * FROM Criminal_History 
+WHERE Criminal_Name LIKE '%Criminal99%';
+
+-- Case Aging Analysis
+SELECT * FROM Case_Aging_Analysis
+WHERE ROWNUM <= 5;
+
+-- User Activity Report
+SELECT * FROM User_Activity_Report
+WHERE Username = 'test_officer99';
+
+-- ===============================
+-- 9. ADVANCED FUNCTIONS TESTING
+-- ===============================
+
+-- Officer caseload function
+SELECT 
+    o.Officer_ID,
+    o.Firstname || ' ' || o.Lastname AS Officer_Name,
+    get_officer_caseload(o.Officer_ID) AS Current_Caseload
+FROM Officer o
+ORDER BY Current_Caseload DESC;
+
+-- Crime status function
+SELECT 
+    c.C_ID, 
+    c.Crime_desc,
+    get_crime_status(c.C_ID) AS Current_Status
+FROM Crime c
+WHERE ROWNUM <= 5;
