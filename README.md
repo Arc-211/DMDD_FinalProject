@@ -1,105 +1,149 @@
-# DMDD_FinalProject
+================================================================
+CRIME RATE MANAGEMENT SYSTEM (CRMS)
+================================================================
 
-Crime Rate Management System (CRMS)
-A comprehensive database system designed for law enforcement agencies to manage crime data, track investigations, and generate analytical reports.
-Table of Contents
+A comprehensive database system designed for law enforcement agencies to manage 
+crime data, track investigations, and generate analytical reports.
 
-System Overview
-Project Files
-Installation Instructions
-Running the Scripts
-Business Flow Demonstration
-Key Features
-Database Schema
+----------------------------------------------------------------
+TABLE OF CONTENTS
+----------------------------------------------------------------
+1. System Overview
+2. Project Files
+3. Installation Instructions
+4. Running the Scripts
+5. Business Flow Demonstration
+6. Key Features
+7. Database Schema
 
-System Overview
-The Crime Rate Management System (CRMS) provides a centralized database for law enforcement agencies to track crimes, manage investigations, and analyze crime patterns. The system features user authentication, role-based access control, comprehensive audit trails, and advanced analytical reporting capabilities.
-Project Files
+================================================================
+1. SYSTEM OVERVIEW
+================================================================
+
+The Crime Rate Management System (CRMS) provides a centralized database for law 
+enforcement agencies to track crimes, manage investigations, and analyze crime 
+patterns. The system features user authentication, role-based access control, 
+comprehensive audit trails, and advanced analytical reporting capabilities.
+
+================================================================
+2. PROJECT FILES
+================================================================
+
 This project consists of the following key files:
 
-TableCreation1.sql: Database tables, constraints, and initial sample data
-TransactionManagement2.sql: Stored procedures, packages, functions, and triggers
-AdditionalViews.sql: Advanced analytical reporting views
+1. TableCreation1.sql:       Database tables, constraints, and initial sample data
+2. TransactionManagement2.sql: Stored procedures, packages, functions, and triggers
+3. AdditionalViews.sql:      Advanced analytical reporting views
 
-Installation Instructions
+================================================================
+3. INSTALLATION INSTRUCTIONS
+================================================================
+
+----------------------------------------------------------------
 Prerequisites
+----------------------------------------------------------------
+- Oracle Database (11g or higher)
+- Oracle SQL Developer or another SQL client with Oracle connectivity
 
-Oracle Database (11g or higher)
-Oracle SQL Developer or another SQL client with Oracle connectivity
-
+----------------------------------------------------------------
 Setup Process
+----------------------------------------------------------------
 
-Database User Creation (Optional)
-If using a new schema/user:
-sqlCREATE USER crms_user IDENTIFIED BY password;
-GRANT CONNECT, RESOURCE, CREATE VIEW, CREATE PROCEDURE, CREATE SEQUENCE TO crms_user;
-ALTER USER crms_user QUOTA UNLIMITED ON USERS;
+1. Database User Creation (Optional)
+   If using a new schema/user:
+   
+   CREATE USER crms_user IDENTIFIED BY password;
+   GRANT CONNECT, RESOURCE, CREATE VIEW, CREATE PROCEDURE, CREATE SEQUENCE TO crms_user;
+   ALTER USER crms_user QUOTA UNLIMITED ON USERS;
 
-Connect to Database
-Connect to your Oracle database using SQL Developer or another client with the appropriate credentials.
+2. Connect to Database
+   Connect to your Oracle database using SQL Developer or another client with 
+   the appropriate credentials.
 
-Running the Scripts
+================================================================
+4. RUNNING THE SCRIPTS
+================================================================
+
+----------------------------------------------------------------
 Step 1: Create Database Tables and Initial Data
+----------------------------------------------------------------
 
-Open TableCreation1.sql in Oracle SQL Developer or your SQL client.
-Execute the entire script.
-This script will:
+1. Open TableCreation1.sql in Oracle SQL Developer or your SQL client.
+2. Execute the entire script.
+3. This script will:
+   - Drop any existing tables (with error handling if they don't exist)
+   - Create all required tables with appropriate constraints
+   - Create initial analytical views
+   - Insert sample data for testing
 
-Drop any existing tables (with error handling if they don't exist)
-Create all required tables with appropriate constraints
-Create initial analytical views
-Insert sample data for testing
+4. Verify successful execution:
 
+   SELECT table_name FROM user_tables;
+   -- Should show 9 tables: USERS, OFFICER, CATEGORY, CRIME, CRIME_STATUS, 
+   -- VICTIM, CRIMINAL, VICTIM_CRIME, CRIME_CRIMINAL
+   
+   SELECT view_name FROM user_views 
+   WHERE view_name LIKE 'CRIME%' OR view_name LIKE 'CRIMINAL%' OR view_name LIKE 'MONTHLY%';
+   -- Should show 3 views: CRIME_CATEGORY_STATISTICS, CRIMINAL_ACTIVITY_REPORT, 
+   -- MONTHLY_CRIME_TRENDS
 
-Verify successful execution:
-sqlSELECT table_name FROM user_tables;
--- Should show 9 tables: USERS, OFFICER, CATEGORY, CRIME, CRIME_STATUS, VICTIM, CRIMINAL, VICTIM_CRIME, CRIME_CRIMINAL
-
-SELECT view_name FROM user_views WHERE view_name LIKE 'CRIME%' OR view_name LIKE 'CRIMINAL%' OR view_name LIKE 'MONTHLY%';
--- Should show 3 views: CRIME_CATEGORY_STATISTICS, CRIMINAL_ACTIVITY_REPORT, MONTHLY_CRIME_TRENDS
-
-
+----------------------------------------------------------------
 Step 2: Create Transaction Management Components
+----------------------------------------------------------------
 
-Open TransactionManagement2.sql in your SQL client.
-Execute the entire script.
-This script will:
+1. Open TransactionManagement2.sql in your SQL client.
+2. Execute the entire script.
+3. This script will:
+   - Create sequences for ID generation
+   - Create packages for user, crime, and officer management
+   - Create standalone procedures and functions
+   - Create triggers for audit logging
 
-Create sequences for ID generation
-Create packages for user, crime, and officer management
-Create standalone procedures and functions
-Create triggers for audit logging
+4. Verify successful execution:
 
+   SELECT object_name, object_type 
+   FROM user_objects 
+   WHERE object_type IN ('PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'FUNCTION', 'TRIGGER');
+   -- Should list all created procedures, packages, functions, and triggers
 
-Verify successful execution:
-sqlSELECT object_name, object_type 
-FROM user_objects 
-WHERE object_type IN ('PACKAGE', 'PACKAGE BODY', 'PROCEDURE', 'FUNCTION', 'TRIGGER');
--- Should list all created procedures, packages, functions, and triggers
-
-
+----------------------------------------------------------------
 Step 3: Create Analytical Views
+----------------------------------------------------------------
 
-Open AdditionalViews.sql in your SQL client.
-Execute the entire script.
-This script will create 7 additional analytical views for comprehensive reporting.
-Verify successful execution:
-sqlSELECT view_name FROM user_views;
--- Should list all 10 views (3 from step 1 + 7 from this step)
+1. Open AdditionalViews.sql in your SQL client.
+2. Execute the entire script.
+3. This script will create 7 additional analytical views for comprehensive reporting.
 
+4. Verify successful execution:
 
+   SELECT view_name FROM user_views;
+   -- Should list all 10 views (3 from step 1 + 7 from this step)
+
+----------------------------------------------------------------
 Step 4: Grant Permissions (If Needed)
+----------------------------------------------------------------
+
 If multiple users need access to the system, run the following:
-sql-- For each user that needs access:
+
+-- For each user that needs access:
 GRANT EXECUTE ON user_mgmt_pkg TO username;
 GRANT EXECUTE ON crime_mgmt_pkg TO username;
 GRANT EXECUTE ON officer_mgmt_pkg TO username;
 GRANT SELECT ON Crime_Category_Statistics TO username;
 -- Add additional grants as needed
-Business Flow Demonstration
-The CRMS implements multiple business flows that model the real-world processes in law enforcement. The following scripts demonstrate the main flows:
+
+================================================================
+5. BUSINESS FLOW DEMONSTRATION
+================================================================
+
+The CRMS implements multiple business flows that model the real-world processes 
+in law enforcement. The following scripts demonstrate the main flows:
+
+----------------------------------------------------------------
 1. User Registration and Authentication Flow
-sql-- 1.1 Admin creates a new user account
+----------------------------------------------------------------
+
+-- 1.1 Admin creates a new user account
 DECLARE
     v_user_id NUMBER;
 BEGIN
@@ -149,8 +193,12 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Officer profile created with ID: ' || v_officer_id);
 END;
 /
+
+----------------------------------------------------------------
 2. Crime Reporting and Initial Processing Flow
-sql-- 2.1 Report a new crime
+----------------------------------------------------------------
+
+-- 2.1 Report a new crime
 DECLARE
     v_crime_id NUMBER;
 BEGIN
@@ -192,8 +240,12 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Victim linked to crime successfully');
 END;
 /
+
+----------------------------------------------------------------
 3. Investigation Management Flow
-sql-- 3.1 Update case status to investigating
+----------------------------------------------------------------
+
+-- 3.1 Update case status to investigating
 BEGIN
     update_crime_status(
         p_crime_id => 11, -- Use actual crime ID
@@ -252,9 +304,14 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Case closed successfully');
 END;
 /
+
+----------------------------------------------------------------
 4. Complete End-to-End Transaction
+----------------------------------------------------------------
+
 The system also supports handling multi-step operations as a single transaction:
-sql-- 4.1 Process complete crime report in one transaction
+
+-- 4.1 Process complete crime report in one transaction
 DECLARE
     v_success BOOLEAN;
 BEGIN
@@ -278,8 +335,12 @@ BEGIN
     END IF;
 END;
 /
+
+----------------------------------------------------------------
 5. Analytical Reporting Queries
-sql-- 5.1 View officer performance metrics
+----------------------------------------------------------------
+
+-- 5.1 View officer performance metrics
 SELECT * FROM Officer_Performance_Statistics;
 
 -- 5.2 View high priority cases
@@ -298,57 +359,69 @@ WHERE Criminal_Name = 'John Doe';
 
 -- 5.6 Monitor user activity
 SELECT * FROM User_Activity_Report;
-Key Features
-User Management
 
-Role-based access control (Admin, Officer, User)
-Secure authentication process
-User profile management
+================================================================
+6. KEY FEATURES
+================================================================
+
+User Management
+--------------
+- Role-based access control (Admin, Officer, User)
+- Secure authentication process
+- User profile management
 
 Crime Management
-
-Comprehensive crime recording
-Category classification
-Officer assignment
-Status tracking
+--------------
+- Comprehensive crime recording
+- Category classification
+- Officer assignment
+- Status tracking
 
 Investigation Tracking
-
-Investigation status workflow
-Case assignment and reassignment
-Case resolution and closure
+--------------
+- Investigation status workflow
+- Case assignment and reassignment
+- Case resolution and closure
 
 Resource Management
-
-Officer caseload tracking
-Performance metrics
-Workload distribution analysis
+--------------
+- Officer caseload tracking
+- Performance metrics
+- Workload distribution analysis
 
 Analytical Reporting
-
-Crime trend analysis
-Officer performance evaluation
-Case prioritization
-Aging case identification
+--------------
+- Crime trend analysis
+- Officer performance evaluation
+- Case prioritization
+- Aging case identification
 
 Security Features
+--------------
+- Role-based access control
+- Comprehensive audit trails
+- Data validation
+- Transaction integrity
 
-Role-based access control
-Comprehensive audit trails
-Data validation
-Transaction integrity
+================================================================
+7. DATABASE SCHEMA
+================================================================
 
-Database Schema
 The system consists of 9 primary tables:
 
-USERS: Authentication and access control
-OFFICER: Law enforcement personnel details
-CATEGORY: Crime classification types
-CRIME: Core crime incident records
-CRIME_STATUS: Investigation status tracking
-VICTIM: Victim information
-CRIMINAL: Criminal/suspect information
-VICTIM_CRIME: Junction table linking victims to crimes
-CRIME_CRIMINAL: Junction table linking criminals to crimes
+1. USERS:           Authentication and access control
+2. OFFICER:         Law enforcement personnel details
+3. CATEGORY:        Crime classification types
+4. CRIME:           Core crime incident records
+5. CRIME_STATUS:    Investigation status tracking
+6. VICTIM:          Victim information
+7. CRIMINAL:        Criminal/suspect information
+8. VICTIM_CRIME:    Junction table linking victims to crimes
+9. CRIME_CRIMINAL:  Junction table linking criminals to crimes
 
-Relationships are established through foreign key constraints to maintain referential integrity.
+Relationships are established through foreign key constraints to maintain 
+referential integrity.
+
+================================================================
+END OF README
+================================================================
